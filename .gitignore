@@ -1,0 +1,58 @@
+# === Python === #
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+eggs/
+*.whl
+
+# === Virtual Environment === #
+venv/
+env/
+.venv/
+.env/
+
+# === Jupyter Notebook === #
+.ipynb_checkpoints/
+
+# === IDE === #
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === OS === #
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Project-Specific === #
+data/*
+!data/.gitkeep
+checkpoints/*
+!checkpoints/.gitkeep
+logs/*
+!logs/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
+# === PyTorch === #
+*.pth
+*.pt
+*.ckpt
+
+# === WandB === #
+wandb/
+
+# === Misc === #
+*.log
+*.csv
+*.tsv
+*.zip
+*.tar.gz
+*.h5

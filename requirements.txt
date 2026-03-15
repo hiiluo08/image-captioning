@@ -1,0 +1,33 @@
+# Core
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Image processing
+Pillow>=9.0.0
+
+# NLP / Metrics
+nltk>=3.8.0
+
+# Configuration
+PyYAML>=6.0
+
+# Utilities
+tqdm>=4.65.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Logging
+tensorboard>=2.13.0
+# wandb>=0.15.0          # Uncomment if using Weights & Biases
+
+# Notebooks
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Optional: Web demo
+# gradio>=3.40.0
+# streamlit>=1.25.0
