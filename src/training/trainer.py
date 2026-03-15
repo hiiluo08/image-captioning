@@ -1,15 +1,16 @@
 """
 Trainer
 ========
-Training loop for the Image Captioning model.
+Training loop for the Image Captioning model (CNN + Transformer).
 
 Handles:
-- Training loop with teacher forcing
+- Training loop with causal masking (Transformer)
 - Validation loop
 - Checkpoint saving/loading
 - Logging (TensorBoard / WandB)
-- Learning rate scheduling
+- Learning rate scheduling with warmup
 - Gradient clipping
+- Label smoothing
 """
 
 import os
@@ -43,9 +44,13 @@ class Trainer:
 
         Steps:
             1. Store model, data loaders, and config
-            2. Set up loss function (CrossEntropyLoss with ignore_index for padding)
-            3. Set up optimizer (Adam/AdamW)
-            4. Set up learning rate scheduler (optional)
+            2. Set up loss function:
+               - nn.CrossEntropyLoss(ignore_index=pad_idx, label_smoothing=0.1)
+               - label_smoothing is important for Transformers!
+            3. Set up optimizer (AdamW recommended for Transformers)
+            4. Set up learning rate scheduler with warmup:
+               - Warmup: linearly increase LR for warmup_steps
+               - Then: cosine decay or step decay
             5. Set up device (GPU/CPU)
             6. Set up logging (TensorBoard/WandB)
         """
@@ -64,11 +69,17 @@ class Trainer:
         Steps:
             1. Set model to training mode
             2. Iterate over batches
-            3. Forward pass (images, captions -> outputs)
-            4. Compute loss (ignore padding tokens!)
+            3. Forward pass:
+               - images → encoder → spatial features
+               - spatial features + captions → decoder → logits
+               - (causal mask is handled inside the decoder)
+            4. Compute loss:
+               - output logits vs target captions (shifted by 1)
+               - Reshape: logits [B*T, vocab_size] vs targets [B*T]
+               - ignore_index for padding tokens
             5. Backward pass
-            6. Gradient clipping
-            7. Optimizer step
+            6. Gradient clipping (important for Transformer stability)
+            7. Optimizer step + scheduler step
             8. Log metrics
         """
         # TODO: Implement training loop

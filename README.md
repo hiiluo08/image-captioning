@@ -1,20 +1,28 @@
 # 🖼️ Image Captioning
 
-Generate natural language descriptions for images using a deep learning **Encoder-Decoder** architecture.
+Generate natural language descriptions for images using a **CNN + Transformer** architecture.
 
 ## 📋 Overview
 
 This project implements an image captioning system that takes an image as input and generates a descriptive caption. It uses:
 
-- **Encoder**: Pretrained CNN (ResNet-50 / EfficientNet) for feature extraction
-- **Decoder**: LSTM/GRU with optional Attention mechanism for caption generation
+- **Encoder**: Pretrained CNN (ResNet-50) for extracting spatial image features
+- **Decoder**: Transformer Decoder with multi-head cross-attention and causal masking
 - **Dataset**: Flickr8k / Flickr30k
 
 ## 🏗️ Architecture
 
 ```
-Image → CNN Encoder → Feature Vector → RNN Decoder → Caption
+Image → CNN Encoder → Spatial Features [B, 49, d_model] → Transformer Decoder → Caption
+                                                              ↑
+                                          Caption Tokens + Positional Encoding
 ```
+
+**Key components:**
+- **CNN Encoder**: Extracts a grid of spatial features (e.g., 7×7 = 49 patches from ResNet-50)
+- **Positional Encoding**: Sinusoidal encoding to inject sequence order information
+- **Transformer Decoder**: Self-attention (causal) + Cross-attention over image features + Feed-forward
+- **Causal Mask**: Prevents attending to future tokens during training & inference
 
 ## 📁 Project Structure
 
@@ -24,7 +32,7 @@ image-captioning/
 ├── notebooks/          # EDA, Training, Evaluation notebooks
 ├── src/
 │   ├── data/           # Dataset, Vocabulary, DataLoader
-│   ├── models/         # Encoder, Decoder, Attention
+│   ├── models/         # Encoder, Transformer Decoder, Positional Encoding
 │   ├── training/       # Training loop & checkpointing
 │   ├── evaluation/     # Metrics (BLEU, METEOR, etc.)
 │   └── inference/      # Prediction & beam search
@@ -93,8 +101,8 @@ python -m src.inference.predict --image path/to/image.jpg
 
 ## 📚 References
 
+- [Attention Is All You Need (Vaswani et al., 2017)](https://arxiv.org/abs/1706.03762)
 - [Show, Attend and Tell (Xu et al., 2015)](https://arxiv.org/abs/1502.03044)
-- [Show and Tell (Vinyals et al., 2015)](https://arxiv.org/abs/1411.4555)
 - [PyTorch Image Captioning Tutorial](https://github.com/sgrvinod/a-PyTorch-Tutorial-to-Image-Captioning)
 
 ## 📄 License

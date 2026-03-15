@@ -1,10 +1,15 @@
 """
-CNN Encoder
-===========
-Extract image features using a pretrained CNN.
+CNN Encoder (Spatial Features for Transformer)
+================================================
+Extract spatial image features using a pretrained CNN.
 
-The encoder takes an image and produces a fixed-size feature vector
-that will be fed into the decoder for caption generation.
+Unlike the RNN approach which outputs a single feature vector,
+the Transformer approach requires a SEQUENCE of feature vectors
+(one per spatial region/patch of the image).
+
+Output shape: [batch_size, num_patches, d_model]
+    - For ResNet-50 with 224x224 input: num_patches = 7*7 = 49
+    - Each patch gets projected to d_model dimensions
 
 Architecture options:
 - ResNet-50 (recommended for starting)
@@ -18,20 +23,23 @@ from torchvision import models
 
 
 class EncoderCNN(nn.Module):
-    """CNN-based image encoder using a pretrained backbone.
+    """CNN-based image encoder that outputs spatial features for Transformer.
 
-    Takes an image tensor and outputs a feature vector of size `embed_size`.
+    Instead of producing a single vector, this encoder preserves spatial
+    information by outputting a grid of feature vectors — one per image region.
+    These become the "memory" (key/value) for the Transformer Decoder's
+    cross-attention layers.
 
     Args:
-        embed_size: Dimension of the output embedding vector.
-        model_name: Name of the pretrained model to use.
+        d_model: Dimension of model (Transformer hidden size).
+        model_name: Name of the pretrained CNN backbone.
         pretrained: Whether to use pretrained weights.
         fine_tune: Whether to allow fine-tuning of CNN layers.
     """
 
     def __init__(
         self,
-        embed_size: int = 256,
+        d_model: int = 512,
         model_name: str = "resnet50",
         pretrained: bool = True,
         fine_tune: bool = False,
@@ -40,32 +48,42 @@ class EncoderCNN(nn.Module):
 
         Steps:
             1. Load pretrained CNN model
-            2. Remove the final classification layer
-            3. Add a linear layer to project features to embed_size
-            4. Add batch normalization
-            5. Freeze/unfreeze CNN layers based on fine_tune flag
+            2. Remove the final pooling + classification layers
+               (keep everything up to the last conv block)
+            3. Add a projection layer to map CNN feature dim → d_model
+            4. Freeze/unfreeze CNN layers based on fine_tune flag
+
+        Hint for ResNet-50:
+            - Use nn.Sequential(*list(resnet.children())[:-2]) to remove
+              AdaptiveAvgPool2d and Linear layers
+            - Last conv block output: [batch, 2048, 7, 7] for 224x224 input
+            - Project 2048 → d_model with nn.Conv2d(2048, d_model, kernel_size=1)
+              or flatten spatial dims and use nn.Linear(2048, d_model)
         """
         super(EncoderCNN, self).__init__()
-        # TODO: Load pretrained CNN (e.g., models.resnet50(pretrained=True))
-        # TODO: Remove the last FC layer (replace with nn.Identity() or extract features)
-        # TODO: Add a projection layer: nn.Linear(cnn_feature_size, embed_size)
-        # TODO: Add nn.BatchNorm1d(embed_size)
+        # TODO: Load pretrained CNN
+        # TODO: Remove pooling + FC layers (keep conv layers only)
+        # TODO: Add projection: nn.Linear(cnn_feature_dim, d_model)
         # TODO: Freeze CNN parameters if fine_tune is False
         raise NotImplementedError("Implement __init__")
 
     def forward(self, images: torch.Tensor) -> torch.Tensor:
-        """Extract image features.
+        """Extract spatial features from images.
 
         Args:
             images: Input images [batch_size, 3, H, W]
 
         Returns:
-            Feature vectors [batch_size, embed_size]
+            features: Spatial feature sequence [batch_size, num_patches, d_model]
+                      For ResNet-50 + 224x224: [batch_size, 49, d_model]
+
+        Steps:
+            1. Pass images through CNN backbone → [batch, cnn_dim, h, w]
+            2. Reshape: [batch, cnn_dim, h, w] → [batch, h*w, cnn_dim]
+               (flatten spatial dims into a sequence)
+            3. Project: [batch, h*w, cnn_dim] → [batch, h*w, d_model]
         """
-        # TODO: 1. Pass images through CNN backbone
-        # TODO: 2. Flatten features
-        # TODO: 3. Project through linear layer
-        # TODO: 4. Apply batch normalization
+        # TODO: Extract spatial features and reshape for Transformer
         raise NotImplementedError("Implement forward")
 
     def fine_tune(self, enable: bool = True, num_layers: int = 3) -> None:
